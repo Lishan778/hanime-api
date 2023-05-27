@@ -6,7 +6,7 @@
   <h3 align="center">Hanime API</h3>
 
   <p align="center">
-    <samp>A hentai streaming API 👀<a href="https://hanime.tv/">hanime</a></samp>
+    <samp>A hentai streaming API 👀</samp>
     <br />
     <a href="#routes"><strong>Explore the api »</strong></a>
     <br />
