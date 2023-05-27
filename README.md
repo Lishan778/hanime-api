@@ -37,7 +37,7 @@ $ npm install #or yarn install
 start the server!
 
 ```sh
-$ npm start #or yarn start
+$ node src/app.js #or node .
 ```
 
 
