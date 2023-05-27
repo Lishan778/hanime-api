@@ -29,8 +29,8 @@
 Run the following command to clone the repository, and install the dependencies.
 
 ```sh
-$ git clone https://github.com/consumet/api.consumet.org.git
-$ cd api.consumet.org
+$ git clone https://github.com/Lishan778/hanime-api.git
+$ cd hanime-api
 $ npm install #or yarn install
 ```
 
