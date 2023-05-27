@@ -1,10 +1,19 @@
 FROM node:latest
 
-WORKDIR /home/ubuntu/mc-status
+# Set the working directory
+WORKDIR /app
 
-COPY package.json /home/ubuntu/mc-status
+# Copy package.json and package-lock.json
+COPY package*.json ./
+
+# Install dependencies
 RUN npm install
 
-COPY . /home/ubuntu/mc-status
+# Copy the application code
+COPY . .
 
-CMD ["node", "app.js"]
+# Expose the port
+EXPOSE 3000
+
+# Run the application
+CMD ["npm", "node src/app.js"]
