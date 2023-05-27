@@ -39,3 +39,21 @@ start the server!
 ```sh
 $ node src/app.js #or node .
 ```
+
+### Docker
+Docker image is available at [Docker Hub]([https://hub.docker.com/r/shaandev/hanime]).
+
+run the following command to pull and run the docker image.
+
+```sh
+$ docker pull shaandev/hanime
+$ docker run -p 3000:3000 shaandev/hanime
+```
+This will start the server on port 3000. You can access the server at http://localhost:3000/, And can change the port by changing the -p option to `-p <port>:3000`.
+
+You can add `-d` flag to run the server in detached mode.
+
+### Railway
+Host your own API on Railway using the button below.
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/xa2prB?referralCode=IQ6SJj)
