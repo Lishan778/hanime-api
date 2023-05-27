@@ -4,7 +4,6 @@ const crypto = require('crypto');
 const UserAgent = require('fake-useragent');
 
 const app = express();
-const port = 3000;
 
 const jsongen = async (url) => {
   const headers = {
@@ -128,9 +127,11 @@ app.get('/', (req, res) => {
   });
   
 
-app.listen(port, () => {
+const server = app.listen(process.env.PORT || 3000, () => {
+  const port = server.address().port;
   console.log(`Server is running on port ${port}`);
 });
+
 
 
 
