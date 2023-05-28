@@ -6,14 +6,24 @@ const UserAgent = require('fake-useragent');
 const app = express();
 
 const jsongen = async (url) => {
-  const headers = {
-    'X-Signature-Version': 'web2',
-    'X-Signature': crypto.randomBytes(32).toString('hex'),
-    'User-Agent': new UserAgent().random,
-  };
-  const res = await axios.get(url, { headers });
-  return res.data;
+  try {
+    const headers = {
+      'X-Signature-Version': 'web2',
+      'X-Signature': crypto.randomBytes(32).toString('hex'),
+      'User-Agent': new UserAgent().random,
+    };
+    const res = await axios.get(url, { headers });
+    return res.data;
+  } catch (error) {
+    throw new Error(`Error fetching data: ${error.message}`);
+  }
 };
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong' });
+});
 
 const getTrending = async (time, page) => {
   const trendingUrl = `https://hanime.tv/api/v8/browse-trending?time=${time}&page=${page}&order_by=views&ordering=desc`;
@@ -36,7 +46,7 @@ const getVideo = async (slug) => {
   const videoData = await jsongen(videoDataUrl);
   const tags = videoData.hentai_tags.map((t) => ({
     name: t.text,
-    link: `/browse/hentai-tags/${t.text}/0`,
+    link: `/hentai-tags/${t.text}/0`,
   }));
   const streams = videoData.videos_manifest.servers[0].streams.map((s) => ({
     width: s.width,
@@ -86,52 +96,72 @@ const getBrowseVideos = async (type, category, page) => {
   return jsondata;
 };
 
-app.get('/watch/:slug', async (req, res) => {
-  const { slug } = req.params;
-  const jsondata = await getVideo(slug);
-  res.json({ results: jsondata });
-});
-
-app.get('/trending/:time/:page', async (req, res) => {
-  const { time, page } = req.params;
-  const jsondata = await getTrending(time, page);
-  const nextPage = `/api/trending/${time}/${parseInt(page) + 1}`;
-  res.json({ results: jsondata, next_page: nextPage });
-});
-
-app.get('/browse/:type', async (req, res) => {
-  const { type } = req.params;
-  const data = await getBrowse();
-  let jsondata = data[type];
-  if (type === 'hentai_tags') {
-    jsondata = jsondata.map((x) => ({ ...x, url: `/browse/hentai-tags/${x.text}/0` }));
-  } else if (type === 'brands') {
-    jsondata = jsondata.map((x) => ({ ...x, url: `/browse/brands/${x.slug}/0` }));
+app.get('/watch/:slug', async (req, res, next) => {
+  try {
+    const { slug } = req.params;
+    const jsondata = await getVideo(slug);
+    res.json({ results: jsondata });
+  } catch (error) {
+    next(error);
   }
-  res.json({ results: jsondata });
 });
 
-app.get('/browse', (req, res) => {
-  res.json({ tags: '/browse/hentai_tags', brands: '/browse/brands' });
+app.get('/trending/:time/:page', async (req, res, next) => {
+  try {
+    const { time, page } = req.params;
+    const jsondata = await getTrending(time, page);
+    const nextPage = `/trending/${time}/${parseInt(page) + 1}`;
+    res.json({ results: jsondata, next_page: nextPage });
+  } catch (error) {
+    next(error);
+  }
 });
 
-app.get('/browse/:type/:category/:page', async (req, res) => {
-  const { type, category, page } = req.params;
-  const data = await getBrowseVideos(type, category, page);
-  const nextPage = `/browse/${type}/${category}/${parseInt(page) + 1}`;
-  res.json({ results: data, next_page: nextPage });
+app.get('/browse/:type', async (req, res, next) => {
+  try {
+    const { type } = req.params;
+    const data = await getBrowse();
+    let jsondata = data[type];
+    if (type === 'hentai_tags') {
+      jsondata = jsondata.map((x) => ({ ...x, url: `/hentai-tags/${x.text}/0` }));
+    } else if (type === 'brands') {
+      jsondata = jsondata.map((x) => ({ ...x, url: `test${x.slug}/0` }));
+    }
+    res.json({ results: jsondata });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/tags', async (req, res, next) => {
+  try {
+    const data = await getBrowse();
+    const jsondata = data.hentai_tags.map((x) => ({ ...x, url: `/tags/${x.text}/0` }));
+    res.json({ results: jsondata });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/:type/:category/:page', async (req, res, next) => {
+  try {
+    const { type, category, page } = req.params;
+    const data = await getBrowseVideos(type, category, page);
+    const nextPage = `/${type}/${category}/${parseInt(page) + 1}`;
+    res.json({ results: data, next_page: nextPage });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.get('/', (req, res) => {
-    res.send('Welcome to Hanime Api 👀');
-  });
-  
+  res.send('Welcome to Hanime Api 👀');
+});
 
 const server = app.listen(process.env.PORT || 3000, () => {
   const port = server.address().port;
   console.log(`Server is running on port ${port}`);
 });
-
 
 
 
